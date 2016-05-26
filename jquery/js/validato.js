@@ -14,7 +14,7 @@
 		Validato.errorTips = {
 			required:'该字段不能为空!',
 			fixLength:'长度必须是{fixedVal}个字符!',
-			remote: "请修正此字段",
+			remote: "后台验证不通过",
 			email: "请输入有效的电子邮件地址",
 			url: "请输入有效的网址",
 			date: "请输入有效的日期",
@@ -70,7 +70,8 @@
 		validating:function(){
 			// 判断用户是否传验证规则
 			var Validato = this;
-			if ( Validato.options == null || Validato.options === undefined ) { // 用户不传递任何元素和规则时
+			if ( Validato.options == null || Validato.options === undefined ) {
+				// 用户不传递任何元素和规则时，默认先查找是否有rules属性，没有的话，则不进行任何判断
 				var allInputObj = $(Validato.crtForm).find('[name]');
 				// $.log(allInputObj);return false;
 				var finalResult;
@@ -104,50 +105,112 @@
 				});
 				// 如果验证不通过的话，则终止
 				C.log(finalResult);return false;
-
-			} else { // 用户传递元素和规则时
-				//
-				var itemRules = Validato.options.itemRules;
+			} else { 
+				// 用户传递元素和规则时
+				var itemRules = Validato.options.rules;
 				var errorTips = Validato.options.errorTips;
-				// C.log(itemRules);
+				// C.log(itemRules);return false;
 				var finalResult = {status:1, msg:'pass'};
 				firstLevelFor:
 				for (var i in itemRules) {
-					var crtItemName = i;
-					var crtBoxVal = $('[name=' + crtItemName + ']').val();
-					var ruleStr = itemRules[i];
-					// 对每一个rules进行验证
-					var rules = ruleStr.split('|');
-					for(var key in rules){
-						// 
-						var complexRule = rules[key].split('=');
-						// 检查该rules的errorTips是否定义
-						if ( errorTips[crtItemName] == undefined || errorTips[crtItemName][complexRule[0]] == undefined ) {
-							crtErrorTip = Validato.errorTips[complexRule[0]];
-						} else {
-							crtErrorTip = errorTips[crtItemName][complexRule[0]];
+					var crtItemName = i; // 当前表单元素的name值
+					var crtBoxVal = $('[name=' + crtItemName + ']').val(); // 当前等待验证的表单值
+					if ( typeof itemRules[i] ==='string' ) {
+						// 字符串形式规则
+						var ruleStr = itemRules[i];
+						// 对每一个rules进行验证
+						var rules = ruleStr.split('|');
+						var crtErrorTip = '';
+						for(var key in rules){
+							// 
+							var complexRule = rules[key].split('=');
+							// 检查该rules的errorTips是否定义
+							if ( errorTips[crtItemName] == undefined || errorTips[crtItemName][complexRule[0]] == undefined ) {
+								crtErrorTip = Validato.errorTips[complexRule[0]];
+							} else {
+								crtErrorTip = errorTips[crtItemName][complexRule[0]];
+							}
+							C.log(crtErrorTip);
+							if ( complexRule.length > 1 ) { // fixLength=6, minLength=3, maxLength=6
+								C.log(crtErrorTip);
+								var check_res = Validato[complexRule[0]](crtBoxVal, complexRule[1], crtErrorTip);
+								if ( check_res.status == 0 ) {
+									// Validato.errorPlace(crtItemName, check_res.msg);
+									// layer.msg(check_res.msg);
+									Validato.showError(crtItemName, check_res.msg);
+									finalResult = check_res;
+									break firstLevelFor;
+								}else{
+									Validato.clearError(crtItemName);
+								}
+							} else{ // required, email, mobile, 
+								// C.log(crtErrorTip);
+								var check_res = Validato[complexRule[0]](crtBoxVal, crtErrorTip);
+								if ( check_res.status == 0 ) {
+									Validato.showError(crtItemName, check_res.msg);
+									finalResult = check_res;
+									break firstLevelFor;
+								}else{
+									Validato.clearError(crtItemName);
+								}
+							};
 						}
-						if ( complexRule.length > 1 ) { // fixLength=6, minLength=3, maxLength=6
-							var check_res = Validato[complexRule[0]](crtBoxVal, complexRule[1], crtErrorTip);
-							if ( check_res.status == 0 ) {
-								// Validato.errorPlace(crtItemName, check_res.msg);
-								// layer.msg(check_res.msg);
-								Validato.showError(crtItemName, check_res.msg);
-								finalResult = check_res;
-								break firstLevelFor;
-							}else{
-								Validato.clearError(crtItemName);
+						// 字符串形式规则结束
+					} else {
+						// 对象数据形式规则 - 开始
+						// C.log(crtItemName);
+						// C.log(itemRules[i]);
+						var rules = itemRules[i];
+						for(var key in rules){
+							var ruleName = key;
+							var ruleParams = rules[key];
+							// C.log(ruleName);
+							// C.log(ruleParams);
+							// C.log( errorTips[crtItemName][ruleName] );
+							if ( errorTips[crtItemName][ruleName] == undefined ) {
+								crtErrorTip = Validato.errorTips[ruleName];
+							} else {
+								crtErrorTip = errorTips[crtItemName][ruleName];
 							}
-						} else{ // required, email, mobile, 
-							var check_res = Validato[complexRule[0]](crtBoxVal, crtErrorTip);
-							if ( check_res.status == 0 ) {
-								Validato.showError(crtItemName, check_res.msg);
-								finalResult = check_res;
-								break firstLevelFor;
-							}else{
-								Validato.clearError(crtItemName);
+							// C.log(crtErrorTip);
+							if ( ruleParams === true ) {
+								var check_res = Validato[ruleName](crtBoxVal, crtErrorTip);
+								if ( check_res.status == 0 ) {
+									// Validato.errorPlace(crtItemName, check_res.msg);
+									// layer.msg(check_res.msg);
+									C.log(check_res);
+									Validato.showError(crtItemName, check_res.msg);
+									finalResult = check_res;
+									// return false;
+									break firstLevelFor;
+								}else{
+									C.log('pass');
+									Validato.clearError(crtItemName);
+								}
+							} else {
+								var check_res = Validato[ruleName](crtBoxVal, ruleParams, crtErrorTip);
+								if( check_res.status === -1 ){
+									layer.msg(check_res.msg);
+									return false;
+								}else if ( check_res.status === 0 ) {
+									// Validato.errorPlace(crtItemName, check_res.msg);
+									// layer.msg(check_res.msg);
+									// C.log(check_res);
+									Validato.showError(crtItemName, check_res.msg);
+									finalResult = check_res;
+									// return false;
+									break firstLevelFor;
+								}else if( check_res.status === 1 ){
+									// C.log('pass');
+									// layer.msg(check_res.msg);
+									// C.log(check_res.msg);
+									Validato.clearError(crtItemName);
+								}
 							}
-						};
+
+						}
+						// return false;
+						// 对象数据形式规则 - 结束
 					}
 				}
 				C.log(finalResult);//return false;
@@ -234,22 +297,56 @@
 			}
 		},
 		// ajax验证方法
-		remote:function(params){
+		remote:function(val, params, errorTips){
 			// 
 			var result;
 			var type = params.type ? params.type : 'post';
-			var data = params.data ? params.data : {};
+			if ( params.data ) {
+				var finalData = {};
+				firstLevelFor:
+				for( var key in params.data ){
+					var itemName = key;
+					var ele = $( params.data[itemName] ).prop('tagName');
+					if ( ele === undefined ) {
+						// C.log('请确认元素选择器是否有误');
+						result = {status:-1, msg: '配置参数错误：请确认元素选择器是否有误'};
+						return result;
+					}
+					var tagName = $( params.data[itemName] ).prop('tagName').toLowerCase();
+					// C.log( tagName );return false;
+					var tagType = $(params.data[itemName]).prop('type').toLowerCase();
+					// radio
+					if ( tagType === 'radio' ) {
+						finalData[itemName] = $( params.data[itemName] + ':checked' ).val();
+					} else if ( tagType === 'checkbox' ) {
+						finalData[itemName] = new Array();
+						for( var checkItem in $( params.data[itemName] + ':checked') ){
+							finalData[itemName].push($(checkItem).val());
+						}
+					} else if( tagName == 'input' || tagName == 'textarea' ){
+						finalData[itemName] = $( params.data[itemName] ).val();
+					} else if( tagName == 'select' ){
+						finalData = $( params.data[itemName] ).find('option:selected').val();
+					}
+				}
+			} else {
+				var finalData = {};
+			}
 			var url = params.url ? params.url : '';
 			var dataType = params.dataType ? params.dataType : 'json';
 			$.ajax({
 				type: type,
 				url: url,
-				data: data,
+				data: finalData,
 				dataType: dataType,
 				async:false,
 				success:function(msg){
 					// 
-					result = msg;
+					if ( params.callback ) {
+						result = params.callback(msg);
+					} else {
+						result = msg;
+					}
 				}
 			});
 			return result;
