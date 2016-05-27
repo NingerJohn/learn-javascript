@@ -225,10 +225,10 @@
 			for (var i = 0; i < errorPopTypeArr.length; i++) {
 				// errorPopTypeArr[i];
 				if ( errorPopTypeArr[i] == 'default' ) {
-					// 
+					// 元素形式错误提示
 					this.errorPlace(itemName, msg);
 				}else if( errorPopTypeArr[i] == 'layer' ){
-					// 
+					// layer弹出层提示
 					layer.msg(msg);
 				}
 			};
@@ -237,10 +237,11 @@
 		// 
 		// 
 		// 
-		// 错误位置
+		// 错误提示位置
 		errorPlacement:function(){
 			// 
 		},
+		// 展示错误
 		errorPlace:function(itemName, msg){
 			this.clearError(itemName);
 			$('[name=' + itemName + ']').after('<label class="error">' + msg + '</label>');
