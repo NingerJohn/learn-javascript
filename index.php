@@ -12,7 +12,7 @@ if ( $_POST ) {
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title></title>
+	<title>jQuery表单验证插件</title>
 	<script type="text/javascript" src="./jquery/js/jquery-v1.12.4.min.js"></script>
 	<script type="text/javascript" src="./jquery/js/validato.js"></script>
 
