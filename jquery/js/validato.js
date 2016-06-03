@@ -8,7 +8,9 @@
 		Validato.options = options;
 		// typeof(undefined) === 'undefined', undefined === undefined
 
-		// Validato.errorPlacement = options.errorPlacement ? options.errorPlacement : ;
+		Validato.errorPlacement = options.errorPlacement ? options.errorPlacement : false;
+		C.log(Validato.errorPlacement);
+		return false;
 		
 		// Validato默认错误信息
 		Validato.errorTips = {
@@ -225,8 +227,14 @@
 			for (var i = 0; i < errorPopTypeArr.length; i++) {
 				// errorPopTypeArr[i];
 				if ( errorPopTypeArr[i] == 'default' ) {
-					// 元素形式错误提示
-					this.errorPlace(itemName, msg);
+					// 追加元素形式提示错误
+					if ( this.errorPlacement ) {
+						// 
+						this.errorPlacement(this.jqObjectize(itemName), msg);
+					} else {
+						// 默认追加方式
+						this.errorPlace(itemName, msg);
+					}
 				}else if( errorPopTypeArr[i] == 'layer' ){
 					// layer弹出层提示
 					layer.msg(msg);
@@ -237,18 +245,24 @@
 		// 
 		// 
 		// 
-		// 错误提示位置
-		errorPlacement:function(){
+		// 获取jquery形式对象
+		jqObjectize:function(itemName){
 			// 
+			if ( itemName.indexOf('.') > -1 || itemName.indexOf('#') > -1 ) {
+				return $(itemName);
+			} else {
+				return $('[name=' + itemName + ']');
+			}
 		},
 		// 展示错误
 		errorPlace:function(itemName, msg){
 			this.clearError(itemName);
-			$('[name=' + itemName + ']').after('<label class="error">' + msg + '</label>');
-			$('[name=' + itemName + ']').focus();
+			this.jqObjectize(itemName).after('<label class="error">' + msg + '</label>');
+			this.jqObjectize(itemName).focus();
 		},
+		// 清除错误
 		clearError:function(itemName){
-			$('[name=' + itemName + ']').siblings('.error').remove();
+			this.jqObjectize(itemName).siblings('.error').remove();
 		},
 		// 必填验证方法
 		required:function(val, errorTips){

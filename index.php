@@ -113,6 +113,9 @@ var options = {
 	},
 	// addErrorPop:'layer',  // 添加layer错误提示方式
 	errorPopType:['default','layer'], // 使用default，layer错误提示方式
+	errorPlacement:function(element, error){
+		element.after('<label for="" class="error">' + error + '</label>');
+	}
 };
 // options = null;
 var t = $('.form').validato(options);
