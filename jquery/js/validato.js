@@ -9,7 +9,7 @@
 		// typeof(undefined) === 'undefined', undefined === undefined
 
 		// 用户自定义错误提示
-		Validato.errorPlacement = options.errorPlacement ? options.errorPlacement : false;
+		Validato.errorPlacement = options && options.errorPlacement ? options.errorPlacement : false;
 		
 		// Validato默认错误信息
 		Validato.errorTips = {
@@ -34,7 +34,7 @@
 			range: "请输入范围在 {min} 到 {max} 之间的数值", // 大小范围
 			max: "请输入不大于 {max} 的数值",
 			min: "请输入不小于 {min} 的数值",
-			cnletter:'请输入中文字符',
+			cnletter:'请输入中文汉字',
 			alphabet:'请输入英文字母',
 			identitycode:'请输入正确的身份证号码',
 		}
@@ -47,7 +47,8 @@
 		// return false;
 
 		// 
-		if ( Validato.options !== undefined && Validato.options.errorPopType.indexOf('layer') > -1 ) {
+		// 
+		if ( Validato.options && Validato.options !== undefined && Validato.options.errorPopType.indexOf('layer') > -1 ) {
 			if ( typeof(window.layer) === 'undefined' ) {
 				// 加载layer.js
 				// C.log(typeof(layer));
@@ -55,15 +56,28 @@
 				var script = document.createElement('script');
 				script.src = 'http://cdn.bootcss.com/layer/2.3/layer.js';
 				script.onload = function(){
-					Validato.validating(Validato);
+					finalValidatingRes = Validato.validating(Validato);
+					if ( finalValidatingRes.status == 1 ) {
+						// 
+						Validato.options.validatePassed !== undefined ? Validato.options.validatePassed() : null;
+					} else {
+						// 
+						Validato.options.validateFailed !== undefined ? Validato.options.validateFailed() : null;
+					}
 				}
 				document.head.appendChild(script);
 			}else{
-				Validato.validating(Validato);
+				finalValidatingRes = Validato.validating(Validato);
+				if ( finalValidatingRes.status == 1 ) {
+					// 
+					Validato.options.validatePassed !== undefined ? Validato.options.validatePassed() : null;
+				} else {
+					// 
+					Validato.options.validateFailed !== undefined ? Validato.options.validateFailed() : null;
+				}
 			}
 		}
-				// Validato.validating(Validato);
-
+		// Validato.validating(Validato);
 	};
 
 	// 验证规则方法声明
@@ -111,7 +125,9 @@
 					};
 				});
 				// 如果验证不通过的话，则终止
-				C.log(finalResult);return false;
+				// C.log(finalResult);
+				return finalResult;
+				// return false;
 			} else {
 				// 用户传递元素和规则时
 				var itemRules = Validato.options.rules;
@@ -140,9 +156,9 @@
 								// 未定义的话，则取validato自己提供的
 								crtErrorTip = errorTips[crtItemName][complexRule[0]];
 							}
-							C.log(crtErrorTip);
+							// C.log(crtErrorTip);
 							if ( complexRule.length > 1 ) { // fixlength=6, minlength=3, maxLength=6
-								C.log(crtErrorTip);
+								// C.log(crtErrorTip);
 								var check_res = Validato[complexRule[0]](crtBoxVal, complexRule[1], crtErrorTip);
 								if ( check_res.status == 0 ) {
 									// Validato.errorPlace(crtItemName, check_res.msg);
@@ -188,7 +204,7 @@
 								if ( check_res.status == 0 ) {
 									// Validato.errorPlace(crtItemName, check_res.msg);
 									// layer.msg(check_res.msg);
-									C.log(check_res);
+									// C.log(check_res);
 									Validato.showError(crtItemName, check_res.msg);
 									finalResult = check_res;
 									// return false;
@@ -201,7 +217,8 @@
 								var check_res = Validato[ruleName](crtBoxVal, ruleParams, crtErrorTip);
 								if( check_res.status === -1 ){
 									// 配置错误或者异常
-									layer.msg(check_res.msg);
+									// layer.msg(check_res.msg);
+									alert(check_res.msg);
 									return false;
 								}else if ( check_res.status === 0 ) {
 									// 验证失败
@@ -226,7 +243,8 @@
 						// 对象数据形式规则 - 结束
 					}
 				}
-				C.log(finalResult);//return false;
+				// C.log(finalResult);//return false;
+				return finalResult; // 返回最终验证结果
 				// C.log(errorTips);
 			};
 		},
@@ -240,9 +258,9 @@
 				// 默认追加元素提示
 				if ( errorPopTypeArr[i] == 'default' ) {
 					// 添加元素形式提示错误
+					var crtMsg = '<i class="validato_error ' + itemName + '">' + msg + '</i>' ;
 					if ( this.errorPlacement ) {
 						//  添加错误
-						var crtMsg = '<i class="validato_error ' + itemName + '">' + msg + '</i>' ;
 						// console.log(itemName);
 						this.clearError(itemName);
 						this.errorPlacement(this.jqObjectize(itemName), crtMsg);
@@ -274,7 +292,7 @@
 		// 展示错误
 		errorPlace:function(itemName, msg){
 			this.clearError(itemName);
-			this.jqObjectize(itemName).html('<i class="validato_error ' + itemName + '">' + msg + '</i>');
+			this.jqObjectize(itemName).after('<i class="validato_error ' + itemName + '">' + msg + '</i>');
 			this.jqObjectize(itemName).focus();
 		},
 		// 清除错误
@@ -467,7 +485,7 @@
 			// var emailReg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])/;
 			var cnletterReg = /[a-zA-Z]+/;
 			if ( !cnletterReg.test(val) ) {
-				var check_res = {status:0, msg:errorTips ? errorTips : this.errorTips.cnletter};
+				var check_res = {status:0, msg:errorTips};
 				return check_res;
 			} else{
 				var check_res = {status:1, msg:'pass'};
@@ -578,16 +596,21 @@
 	}
 
 	$.fn.validato = function(options){
+		var validator = new Validato(this, options);
+		return false;
+		// console.log('new 111111');
+		// return false;
+
 		// $.log(options);
-		if(options && options.triggerType !== undefined){
-			$(options.triggerType.selector)[options.triggerType.type](function(){
-				var validator = new Validato(this, options);
-			})
-		} else {
-			this.focusout(function() {
-				var validator = new Validato(this, options);
-				return false;
-			});
-		}
+		// if(options && options.triggerType !== undefined){
+		// 	$(options.triggerType.selector)[options.triggerType.type](function(){
+		// 		var validator = new Validato(this, options);
+		// 	})
+		// } else {
+		// 	this.focusout(function() {
+		// 		var validator = new Validato(this, options);
+		// 		return false;
+		// 	});
+		// }
 	}
 })(jQuery);

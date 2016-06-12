@@ -71,7 +71,7 @@ var options = {
 			// minlength:6,
 			// maxlength:10,
 			// min:6,
-			identitycode:true,
+			// identitycode:true,
 			// max:50,
 			// cnletter:true,
 			// alphabet:true,
@@ -95,7 +95,7 @@ var options = {
 		// username:'required',
 		password:{
 			required:true,
-			fixlength:6,
+			// fixlength:6,
 			remote:{
 				data:{name : '.username', password: '.password'},
 				url:'index.php',
@@ -120,26 +120,39 @@ var options = {
 		username:{
 			required: '用户名不能为空或含有任何空格',
 			digits:'请输入数字',
+			// cnletter:'请输入中文汉字',
 			remote: '用户名服务器验证不正确', // 如果后台返回错误信息，此处不需要设置
 		},
 		password:{
 			required:'密码不能为空',
-			fixlength:'密码必须为6个字符'
+			// fixlength:'密码必须为6个字符'
 		}
 	},
 	// addErrorPop:'layer',  // 添加layer错误提示方式
+	
 	errorPopType:['default','layer'], // 使用default，layer错误提示方式
-	errorPlacement:function(element, error){
-		// 用户自定义插入错误的位置
+
+	errorPlacement:function(element, error){ // 用户自定义插入错误的位置
 		element.after(error);
 		// element.after('<label for="" class="error">' + error + '</label>');
 		// element.find('i.error').html(error);
 		// element.parent('div').siblings('i').find('label').before(error);
-	}
+	},
+
+	validatePassed:function(){ // 验证通过以后
+		// 
+		alert('用户自定义验证通过方法');
+	},
+
+	validateFailed:function(){ // 验证失败以后
+		// 
+		alert('用户自定义验证失败方法');
+	},
+
 };
 // options = null;
 var t = $('.form').validato(options);
-
+// C.log(t);
 
 </script>
 </body>
