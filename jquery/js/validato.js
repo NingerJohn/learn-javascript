@@ -74,6 +74,7 @@
 				} else {
 					// 
 					Validato.options.validateFailed !== undefined ? Validato.options.validateFailed() : null;
+					return false;
 				}
 			}
 		}
@@ -333,6 +334,9 @@
 		},
 		// 定长验证方法
 		fixlength:function(val, fixedVal, errorTips){
+			if ( errorTips.indexOf('fixedVal') > -1 ) {
+				errorTips = this.errorTips.fixlength.replace(/\{fixedVal\}/, fixedVal);
+			}
 			if( val.length != fixedVal ){
 				var check_res = {status:0, msg: errorTips ? errorTips : this.errorTips.fixlength.replace(/\{fixedVal\}/, fixedVal) };
 				return check_res;
@@ -472,6 +476,7 @@
 		cnletter:function(val, errorTips){
 			// var emailReg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])/;
 			var cnletterReg = /[\u4E00-\u9FA5\uf900-\ufa2d]/;
+			var cnletterReg = /^[\u4e00-\u9fa5]+$/;
 			if ( !cnletterReg.test(val) ) {
 				var check_res = {status:0, msg:errorTips ? errorTips : this.errorTips.cnletter};
 				return check_res;
@@ -547,27 +552,30 @@
 				firstLevelFor:
 				for( var key in params.data ){
 					var itemName = key;
-					var ele = $( params.data[itemName] ).prop('tagName');
+					var ele = this.jqObjectize( params.data[itemName] ).prop('tagName');
 					if ( ele === undefined ) {
 						// C.log('请确认元素选择器是否有误');
-						result = {status:-1, msg: '配置参数错误：请确认元素选择器是否有误'};
-						return result;
-					}
-					var tagName = $( params.data[itemName] ).prop('tagName').toLowerCase();
-					// C.log( tagName );return false;
-					var tagType = $(params.data[itemName]).prop('type').toLowerCase();
-					// radio
-					if ( tagType === 'radio' ) {
-						finalData[itemName] = $( params.data[itemName] + ':checked' ).val();
-					} else if ( tagType === 'checkbox' ) {
-						finalData[itemName] = new Array();
-						for( var checkItem in $( params.data[itemName] + ':checked') ){
-							finalData[itemName].push($(checkItem).val());
+						// 如果用户传递的参数无法获取到元素，则默认是用户自定义的参数比如action_type
+						// result = {status:-1, msg: '配置参数错误：请确认元素选择器是否有误'};
+						// return result;
+						finalData[itemName] = params.data[itemName];
+					}else{
+						var tagName = this.jqObjectize(params.data[itemName]).prop('tagName').toLowerCase();
+						// C.log( tagName );return false;
+						var tagType = this.jqObjectize(params.data[itemName]).prop('type').toLowerCase();
+						// radio
+						if ( tagType === 'radio' ) {
+							finalData[itemName] = this.jqObjectize(params.data[itemName]).find(':checked').val();
+						} else if ( tagType === 'checkbox' ) {
+							finalData[itemName] = new Array();
+							for( var checkItem in this.jqObjectize(params.data[itemName]).find(':checked') ){
+								finalData[itemName].push($(checkItem).val());
+							}
+						} else if( tagName == 'input' || tagName == 'textarea' ){
+							finalData[itemName] = this.jqObjectize(params.data[itemName]).val();
+						} else if( tagName == 'select' ){
+							finalData = this.jqObjectize(params.data[itemName]).find('option:selected').val();
 						}
-					} else if( tagName == 'input' || tagName == 'textarea' ){
-						finalData[itemName] = $( params.data[itemName] ).val();
-					} else if( tagName == 'select' ){
-						finalData = $( params.data[itemName] ).find('option:selected').val();
 					}
 				}
 			} else {
