@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Test</title>
+	<script type="text/javascript" src="./js/alluniversitylist.js"></script>
+</head>
+<body>
+	
+<script type="text/javascript">
+// console.log(allUnivList);
+
+var allData = {};
+for(var i in allUnivList){
+	// console.log(allUnivList[i]);
+	// console.log(i);
+	var country = allUnivList[i];
+	console.log(country);
+	var provs = country['provs'];
+	var univs = country['univs'];
+
+	allData[i] = {nation_name:country.name, nation_id:country.id};
+
+	if ( provs == '' ) {
+		if ( univs === undefined ) {
+			console.log('null');
+		} else {
+			console.log(univs);
+		}
+		// console.log('not china or usa');
+	} else {
+		// console.log(provs);
+		for(var provsKey in provs){
+			var province = provs[provsKey];
+			var universityList = province.univs;
+			console.log(province);
+			console.log(universityList);
+		}
+	}
+	console.log(allData);
+	break;
+	// return false;
+	// console.log(provs);
+}
+
+
+
+</script>
+</body>
+</html>
